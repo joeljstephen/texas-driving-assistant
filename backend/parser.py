@@ -97,8 +97,6 @@ def _parse_contextual_yes_no(text: str, next_question: str | None, facts: FactSt
         ),
         "ask_last_renewal_method": ("last_renewed_in_person", "last renewed in person"),
         "ask_license_status": ("license_valid_status", "license valid status"),
-        "ask_citizenship_for_online_renewal": ("lawful_presence_category_known", "citizenship or lawful presence"),
-        "ask_lawful_presence_for_online_renewal": ("lawful_presence_category_known", "citizenship or lawful presence"),
         "ask_ssn_on_record": ("ssn_on_record", "SSN on record"),
         "ask_front_card_changed": ("front_card_changed", "front-of-card change"),
         "ask_card_number_for_online_replacement": ("has_card_number", "card number available"),
@@ -122,6 +120,13 @@ def _parse_contextual_yes_no(text: str, next_question: str | None, facts: FactSt
     if next_question == "ask_outstanding_tickets_or_warrants":
         facts.no_outstanding_tickets_or_warrants = not answer
         matches.append("outstanding tickets or warrants" if answer else "no outstanding tickets or warrants")
+        return
+
+    if next_question in {"ask_citizenship_for_online_renewal", "ask_lawful_presence_for_online_renewal"}:
+        facts.us_citizen = answer
+        if answer:
+            facts.lawful_presence_category_known = True
+        matches.append("U.S. citizen" if answer else "not U.S. citizen")
         return
 
     if next_question == "ask_if_out_of_state_expired_more_than_two_years" and not answer:

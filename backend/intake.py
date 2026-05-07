@@ -1,15 +1,4 @@
-"""Scenario-specific guided intake configuration.
-
-Each supported case is broken into a small number of grouped steps:
-``About your case`` → ``Your documents`` → ``Extra requirements`` →
-``Review and check``. The Streamlit layer renders one step at a time
-so the experience feels guided instead of dumping a long form.
-
-Backwards compatible helpers ``facts_from_intake`` and ``intake_defaults``
-still accept a flat dict of values so existing tests and callers keep
-working. Document-related selections are translated through the
-``DocumentSelections`` model when the new UI is used.
-"""
+"""Scenario-specific guided intake configuration."""
 
 from __future__ import annotations
 

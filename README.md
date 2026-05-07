@@ -124,7 +124,6 @@ Useful additional checks:
 
 ```bash
 python -m compileall -q .
-python -m ruff check .
 ```
 
 ## Design Notes

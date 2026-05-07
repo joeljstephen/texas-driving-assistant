@@ -1,12 +1,7 @@
-% Texas Driver License Guidance Assistant policy subset.
-% Educational use only. Not legal advice.
-% Scope: adult, non-commercial Texas driver-license guidance for
-% first-time applications, out-of-state transfers, renewals,
-% replacements, and basic change-info handling.
+% Main s(CASP) knowledge base for adult, non-commercial Texas driver-license guidance.
 
 % --------------------------------------------------
-% Optional input predicates supplied by the Python layer.
-% Any predicate not supplied remains false.
+% Optional input predicates
 % --------------------------------------------------
 
 goal(__none) :- false.
@@ -16,19 +11,27 @@ adult_driver_education_status(__none) :- false.
 
 applying_texas_license :- false.
 new_texas_resident :- false.
+
 has_out_of_state_license :- false.
+-has_out_of_state_license :- false.
 no_out_of_state_license :- false.
+
 out_of_state_license_valid :- false.
+-out_of_state_license_valid :- false.
 out_of_state_license_invalid :- false.
+
 out_of_state_license_unexpired :- false.
+-out_of_state_license_unexpired :- false.
 out_of_state_license_expired :- false.
 out_of_state_license_expired_not_over_two_years :- false.
 out_of_state_license_expired_over_two_years :- false.
 
 has_texas_license :- false.
+-has_texas_license :- false.
 no_texas_license :- false.
 
 front_card_changed :- false.
+-front_card_changed :- false.
 no_front_card_changed :- false.
 name_change_requested :- false.
 address_change_requested :- false.
@@ -43,6 +46,7 @@ lawful_presence_category_known :- false.
 lawful_presence_on_record :- false.
 
 owns_vehicle :- false.
+-owns_vehicle :- false.
 no_vehicle_owned :- false.
 has_proof_of_insurance :- false.
 has_texas_vehicle_registration :- false.
@@ -53,21 +57,31 @@ has_last4_ssn :- false.
 has_audit_number :- false.
 
 us_citizen :- false.
+-us_citizen :- false.
 not_us_citizen :- false.
 ssn_on_record :- false.
+-ssn_on_record :- false.
 ssn_not_on_record :- false.
 
 last_renewed_in_person :- false.
+-last_renewed_in_person :- false.
 last_renewed_not_in_person :- false.
 license_valid_status :- false.
+-license_valid_status :- false.
 license_invalid_status :- false.
 no_outstanding_tickets_or_warrants :- false.
+-no_outstanding_tickets_or_warrants :- false.
 outstanding_tickets_or_warrants :- false.
 health_conditions_unchanged :- false.
+-health_conditions_unchanged :- false.
 health_conditions_changed :- false.
 
+-adult_scope :- false.
+-inferred_case(__none) :- false.
+-service_mode(__none) :- false.
+
 % --------------------------------------------------
-% Normalized goal helpers
+% Strict normalization and classical negation
 % --------------------------------------------------
 
 goal_is(first_time) :- goal(first_time).
@@ -97,44 +111,65 @@ knows_goal :- goal_is(renewal).
 knows_goal :- goal_is(replacement).
 knows_goal :- goal_is(change_info).
 
-% --------------------------------------------------
-% Basic knowledge helpers
-% --------------------------------------------------
+-has_out_of_state_license :- no_out_of_state_license.
+-out_of_state_license_valid :- out_of_state_license_invalid.
+-out_of_state_license_unexpired :- out_of_state_license_expired.
+-has_texas_license :- no_texas_license.
+-front_card_changed :- no_front_card_changed.
+-owns_vehicle :- no_vehicle_owned.
+-us_citizen :- not_us_citizen.
+-ssn_on_record :- ssn_not_on_record.
+-last_renewed_in_person :- last_renewed_not_in_person.
+-license_valid_status :- license_invalid_status.
+-no_outstanding_tickets_or_warrants :- outstanding_tickets_or_warrants.
+-health_conditions_unchanged :- health_conditions_changed.
+
+out_of_state_license_expired :- out_of_state_license_expired_not_over_two_years.
+out_of_state_license_expired :- out_of_state_license_expired_over_two_years.
+out_of_state_license_expired :- -out_of_state_license_unexpired.
+-out_of_state_license_expired_over_two_years :- out_of_state_license_expired_not_over_two_years.
+-out_of_state_license_expired_not_over_two_years :- out_of_state_license_expired_over_two_years.
+
+front_of_card_info_changed :- front_card_changed.
+front_of_card_info_changed :- name_change_requested.
+front_of_card_info_changed :- address_change_requested.
 
 age_known :- age(_).
 under_18 :- age(A), A < 18.
-adult_known :- age(A), A >= 18.
-adult_or_unknown :- not under_18.
+age_18_to_24 :- age(A), A >= 18, A =< 24.
 under_79 :- age(A), A < 79.
 
+knows_out_of_state_license_presence :- has_out_of_state_license.
+knows_out_of_state_license_presence :- -has_out_of_state_license.
+
 knows_out_of_state_validity :- out_of_state_license_valid.
-knows_out_of_state_validity :- out_of_state_license_invalid.
+knows_out_of_state_validity :- -out_of_state_license_valid.
 
 knows_out_of_state_expiration :- out_of_state_license_unexpired.
 knows_out_of_state_expiration :- out_of_state_license_expired.
-knows_out_of_state_expiration :- out_of_state_license_expired_not_over_two_years.
-knows_out_of_state_expiration :- out_of_state_license_expired_over_two_years.
+knows_out_of_state_expiration :- -out_of_state_license_unexpired.
 
 knows_renewal_timing :- renewal_timing(_).
 
 knows_front_card_change :- front_card_changed.
-knows_front_card_change :- no_front_card_changed.
+knows_front_card_change :- -front_card_changed.
 knows_front_card_change :- name_change_requested.
 knows_front_card_change :- address_change_requested.
 
 knows_last_renewal_method :- last_renewed_in_person.
-knows_last_renewal_method :- last_renewed_not_in_person.
+knows_last_renewal_method :- -last_renewed_in_person.
 
 knows_license_status :- license_valid_status.
-knows_license_status :- license_invalid_status.
+knows_license_status :- -license_valid_status.
 
 knows_health_change :- health_conditions_unchanged.
-knows_health_change :- health_conditions_changed.
+knows_health_change :- -health_conditions_unchanged.
 
-knows_lawful_presence_for_online_renewal :- lawful_presence_category_known.
+knows_citizenship_for_online_renewal :- us_citizen.
+knows_citizenship_for_online_renewal :- -us_citizen.
 
 knows_ssn_on_record :- ssn_on_record.
-knows_ssn_on_record :- ssn_not_on_record.
+knows_ssn_on_record :- -ssn_on_record.
 
 renewal_window_ok :- renewal_timing(within_window).
 renewal_window_ok :- renewal_timing(within_two_years_before).
@@ -144,23 +179,17 @@ renewal_window_ok :- renewal_timing(expired_less_than_two_years).
 renewal_window_outside :- renewal_timing(outside_window).
 renewal_window_outside :- renewal_timing(expired_more_than_two_years).
 
-recognized_transfer_waiver_credential :-
-    has_out_of_state_license,
-    out_of_state_license_valid,
-    out_of_state_license_unexpired.
-
-recognized_transfer_waiver_credential :-
-    has_out_of_state_license,
-    out_of_state_license_expired_not_over_two_years.
-
 valid_unexpired_transfer_credential :-
     has_out_of_state_license,
     out_of_state_license_valid,
     out_of_state_license_unexpired.
 
-front_of_card_info_changed :- front_card_changed.
-front_of_card_info_changed :- name_change_requested.
-front_of_card_info_changed :- address_change_requested.
+recognized_transfer_waiver_credential :-
+    valid_unexpired_transfer_credential.
+
+recognized_transfer_waiver_credential :-
+    has_out_of_state_license,
+    out_of_state_license_expired_not_over_two_years.
 
 online_replacement_ready :-
     has_card_number,
@@ -168,25 +197,47 @@ online_replacement_ready :-
     has_last4_ssn,
     has_audit_number.
 
-online_renewal_eligible :-
-    renewal_window_ok,
-    last_renewed_in_person,
-    under_79,
-    health_conditions_unchanged,
-    license_valid_status,
-    no_outstanding_tickets_or_warrants,
-    lawful_presence_category_known,
-    ssn_on_record.
-
 % --------------------------------------------------
-% Scenario inference helpers
+% Constraints
 % --------------------------------------------------
 
-transfer_case :- goal_is(transfer).
-transfer_case :- not knows_goal, new_texas_resident, has_out_of_state_license.
+false :- has_out_of_state_license, -has_out_of_state_license.
+false :- out_of_state_license_valid, -out_of_state_license_valid.
+false :- out_of_state_license_unexpired, -out_of_state_license_unexpired.
+false :- out_of_state_license_unexpired, out_of_state_license_expired.
+false :- out_of_state_license_expired_not_over_two_years, out_of_state_license_expired_over_two_years.
+false :- has_texas_license, -has_texas_license.
+false :- front_card_changed, -front_card_changed.
+false :- owns_vehicle, -owns_vehicle.
+false :- us_citizen, -us_citizen.
+false :- ssn_on_record, -ssn_on_record.
+false :- last_renewed_in_person, -last_renewed_in_person.
+false :- license_valid_status, -license_valid_status.
+false :- no_outstanding_tickets_or_warrants, -no_outstanding_tickets_or_warrants.
+false :- health_conditions_unchanged, -health_conditions_unchanged.
+false :- under_18, age_18_to_24.
 
-renewal_case :- goal_is(renewal).
-renewal_case :-
+% --------------------------------------------------
+% Scenario signals
+% --------------------------------------------------
+
+case_candidate(replacement) :- goal_is(replacement).
+case_candidate(replacement) :- goal_is(change_info).
+case_candidate(replacement) :-
+    not knows_goal,
+    has_texas_license,
+    license_lost_stolen_damaged.
+case_candidate(replacement) :-
+    not knows_goal,
+    has_texas_license,
+    name_change_requested.
+case_candidate(replacement) :-
+    not knows_goal,
+    has_texas_license,
+    address_change_requested.
+
+case_candidate(renewal) :- goal_is(renewal).
+case_candidate(renewal) :-
     not knows_goal,
     has_texas_license,
     knows_renewal_timing,
@@ -194,72 +245,96 @@ renewal_case :-
     not name_change_requested,
     not address_change_requested.
 
-replacement_case :- goal_is(replacement).
-replacement_case :- goal_is(change_info).
-replacement_case :-
+case_candidate(out_of_state_transfer) :- goal_is(transfer).
+case_candidate(out_of_state_transfer) :-
     not knows_goal,
-    has_texas_license,
-    license_lost_stolen_damaged.
-replacement_case :-
-    not knows_goal,
-    has_texas_license,
-    name_change_requested.
-replacement_case :-
-    not knows_goal,
-    has_texas_license,
-    address_change_requested.
+    new_texas_resident,
+    has_out_of_state_license.
 
-first_time_case :- goal_is(first_time).
-first_time_case :-
+case_candidate(first_time_application) :- goal_is(first_time).
+case_candidate(first_time_application) :-
     not knows_goal,
     applying_texas_license,
-    no_out_of_state_license,
-    not renewal_case,
-    not replacement_case.
-first_time_case :-
+    -has_out_of_state_license,
+    not case_candidate(renewal),
+    not case_candidate(replacement).
+case_candidate(first_time_application) :-
     not knows_goal,
-    no_texas_license,
-    no_out_of_state_license,
+    -has_texas_license,
+    -has_out_of_state_license,
     applying_texas_license,
-    not renewal_case,
-    not replacement_case.
+    not case_candidate(renewal),
+    not case_candidate(replacement).
 
-can_infer_scenario_without_goal :- transfer_case.
-can_infer_scenario_without_goal :- renewal_case.
-can_infer_scenario_without_goal :- replacement_case.
-can_infer_scenario_without_goal :- first_time_case.
+can_infer_scenario_without_goal :- case_candidate(replacement).
+can_infer_scenario_without_goal :- case_candidate(renewal).
+can_infer_scenario_without_goal :- case_candidate(out_of_state_transfer).
+can_infer_scenario_without_goal :- case_candidate(first_time_application).
+
+transfer_case :- case_candidate(out_of_state_transfer).
+renewal_case :- case_candidate(renewal).
+replacement_case :- case_candidate(replacement).
+first_time_case :- case_candidate(first_time_application).
 
 % --------------------------------------------------
-% Case classification (mutually prioritized)
+% Defaults and strong exceptions for case classification
 % --------------------------------------------------
+
+adult_scope :-
+    not ab(d_adult_scope),
+    not -adult_scope.
+
+ab(d_adult_scope) :- under_18.
+-adult_scope :- under_18.
 
 inferred_case(out_of_scope_under_18) :- under_18.
 
 inferred_case(replacement) :-
-    adult_or_unknown,
-    not under_18,
-    replacement_case.
+    case_candidate(replacement),
+    adult_scope,
+    not ab(d_case_replacement),
+    not -inferred_case(replacement).
+ab(d_case_replacement) :- under_18.
+-inferred_case(replacement) :- under_18.
 
 inferred_case(renewal) :-
-    adult_or_unknown,
-    not under_18,
-    not replacement_case,
-    renewal_case.
+    case_candidate(renewal),
+    adult_scope,
+    not ab(d_case_renewal),
+    not -inferred_case(renewal).
+ab(d_case_renewal) :- under_18.
+ab(d_case_renewal) :- case_candidate(replacement).
+-inferred_case(renewal) :- under_18.
+-inferred_case(renewal) :- case_candidate(replacement).
 
 inferred_case(out_of_state_transfer) :-
-    adult_or_unknown,
-    not under_18,
-    not replacement_case,
-    not renewal_case,
-    transfer_case.
+    case_candidate(out_of_state_transfer),
+    adult_scope,
+    not ab(d_case_transfer),
+    not -inferred_case(out_of_state_transfer).
+ab(d_case_transfer) :- under_18.
+ab(d_case_transfer) :- case_candidate(replacement).
+ab(d_case_transfer) :- case_candidate(renewal).
+-inferred_case(out_of_state_transfer) :- under_18.
+-inferred_case(out_of_state_transfer) :- case_candidate(replacement).
+-inferred_case(out_of_state_transfer) :- case_candidate(renewal).
 
 inferred_case(first_time_application) :-
-    adult_or_unknown,
-    not under_18,
-    not replacement_case,
-    not renewal_case,
-    not transfer_case,
-    first_time_case.
+    case_candidate(first_time_application),
+    adult_scope,
+    not ab(d_case_first_time),
+    not -inferred_case(first_time_application).
+ab(d_case_first_time) :- under_18.
+ab(d_case_first_time) :- case_candidate(replacement).
+ab(d_case_first_time) :- case_candidate(renewal).
+ab(d_case_first_time) :- case_candidate(out_of_state_transfer).
+-inferred_case(first_time_application) :- under_18.
+-inferred_case(first_time_application) :- case_candidate(replacement).
+-inferred_case(first_time_application) :- case_candidate(renewal).
+-inferred_case(first_time_application) :- case_candidate(out_of_state_transfer).
+
+application_case :- inferred_case(first_time_application).
+application_case :- inferred_case(out_of_state_transfer).
 
 % --------------------------------------------------
 % Missing information
@@ -271,8 +346,7 @@ missing_info(goal) :-
 
 missing_info(out_of_state_license_presence) :-
     goal_is(transfer),
-    not has_out_of_state_license,
-    not no_out_of_state_license.
+    not knows_out_of_state_license_presence.
 
 missing_info(out_of_state_license_validity) :-
     transfer_case,
@@ -293,11 +367,9 @@ missing_info(out_of_state_two_year_expiration_detail) :-
 missing_info(age) :-
     first_time_case,
     not age_known.
-
 missing_info(age) :-
     transfer_case,
     not age_known.
-
 missing_info(age) :-
     renewal_case,
     not age_known.
@@ -328,10 +400,10 @@ missing_info(outstanding_tickets_or_warrants) :-
     not no_outstanding_tickets_or_warrants,
     not outstanding_tickets_or_warrants.
 
-missing_info(lawful_presence_for_online_renewal) :-
+missing_info(citizenship_for_online_renewal) :-
     renewal_case,
     renewal_window_ok,
-    not knows_lawful_presence_for_online_renewal.
+    not knows_citizenship_for_online_renewal.
 
 missing_info(ssn_on_record) :-
     renewal_case,
@@ -344,60 +416,44 @@ missing_info(front_card_changed) :-
 
 missing_info(card_number_for_online_replacement) :-
     inferred_case(replacement),
-    no_front_card_changed,
+    -front_card_changed,
     not has_card_number.
 
 missing_info(date_of_birth_for_online_replacement) :-
     inferred_case(replacement),
-    no_front_card_changed,
+    -front_card_changed,
     has_card_number,
     not has_date_of_birth_for_online.
 
 missing_info(last4_ssn_for_online_replacement) :-
     inferred_case(replacement),
-    no_front_card_changed,
+    -front_card_changed,
     has_card_number,
     has_date_of_birth_for_online,
     not has_last4_ssn.
 
 missing_info(audit_number_for_online_replacement) :-
     inferred_case(replacement),
-    no_front_card_changed,
+    -front_card_changed,
     has_card_number,
     has_date_of_birth_for_online,
     has_last4_ssn,
     not has_audit_number.
 
 missing_info(residency_documents) :-
-    inferred_case(out_of_state_transfer),
-    not has_texas_residency_docs.
-
-missing_info(residency_documents) :-
-    inferred_case(first_time_application),
+    application_case,
     not has_texas_residency_docs.
 
 missing_info(identity_documents) :-
-    inferred_case(first_time_application),
-    not has_identity_doc.
-
-missing_info(identity_documents) :-
-    inferred_case(out_of_state_transfer),
+    application_case,
     not has_identity_doc.
 
 missing_info(social_security) :-
-    inferred_case(first_time_application),
-    not has_social_security.
-
-missing_info(social_security) :-
-    inferred_case(out_of_state_transfer),
+    application_case,
     not has_social_security.
 
 missing_info(lawful_presence_category) :-
-    inferred_case(first_time_application),
-    not lawful_presence_category_known.
-
-missing_info(lawful_presence_category) :-
-    inferred_case(out_of_state_transfer),
+    application_case,
     not lawful_presence_category_known.
 
 % --------------------------------------------------
@@ -471,7 +527,7 @@ next_question(ask_outstanding_tickets_or_warrants) :-
     not missing_info(license_status),
     missing_info(outstanding_tickets_or_warrants).
 
-next_question(ask_lawful_presence_for_online_renewal) :-
+next_question(ask_citizenship_for_online_renewal) :-
     not missing_info(goal),
     not missing_info(age),
     not missing_info(renewal_timing),
@@ -479,7 +535,7 @@ next_question(ask_lawful_presence_for_online_renewal) :-
     not missing_info(health_change),
     not missing_info(license_status),
     not missing_info(outstanding_tickets_or_warrants),
-    missing_info(lawful_presence_for_online_renewal).
+    missing_info(citizenship_for_online_renewal).
 
 next_question(ask_ssn_on_record) :-
     not missing_info(goal),
@@ -489,7 +545,7 @@ next_question(ask_ssn_on_record) :-
     not missing_info(health_change),
     not missing_info(license_status),
     not missing_info(outstanding_tickets_or_warrants),
-    not missing_info(lawful_presence_for_online_renewal),
+    not missing_info(citizenship_for_online_renewal),
     missing_info(ssn_on_record).
 
 next_question(ask_front_card_changed) :-
@@ -559,17 +615,24 @@ next_question(ask_lawful_presence_category) :-
     missing_info(lawful_presence_category).
 
 % --------------------------------------------------
-% Service mode
+% Defaults and exceptions
 % --------------------------------------------------
+
+online_renewal_eligible :-
+    renewal_window_ok,
+    last_renewed_in_person,
+    under_79,
+    health_conditions_unchanged,
+    license_valid_status,
+    no_outstanding_tickets_or_warrants,
+    us_citizen,
+    ssn_on_record.
 
 service_mode(not_available_adult_flow) :-
     inferred_case(out_of_scope_under_18).
 
 service_mode(in_person) :-
-    inferred_case(out_of_state_transfer).
-
-service_mode(in_person) :-
-    inferred_case(first_time_application).
+    application_case.
 
 service_mode(cannot_renew_use_original_application_path) :-
     inferred_case(renewal),
@@ -582,7 +645,10 @@ service_mode(may_be_online) :-
 service_mode(likely_in_person) :-
     inferred_case(renewal),
     renewal_window_ok,
-    not online_renewal_eligible.
+    not ab(d_renewal_likely_in_person),
+    not -service_mode(likely_in_person).
+ab(d_renewal_likely_in_person) :- online_renewal_eligible.
+-service_mode(likely_in_person) :- online_renewal_eligible.
 
 service_mode(online_mail_or_in_person) :-
     inferred_case(replacement),
@@ -601,48 +667,36 @@ service_mode(in_person) :-
 
 service_mode(may_be_online) :-
     inferred_case(replacement),
-    no_front_card_changed,
+    -front_card_changed,
     online_replacement_ready.
 
 service_mode(likely_in_person) :-
     inferred_case(replacement),
-    no_front_card_changed,
-    not online_replacement_ready.
+    -front_card_changed,
+    not ab(d_replacement_likely_in_person),
+    not -service_mode(likely_in_person).
+ab(d_replacement_likely_in_person) :- online_replacement_ready.
+-service_mode(likely_in_person) :- online_replacement_ready.
 
 % --------------------------------------------------
 % Required documents / actions
 % --------------------------------------------------
 
-required_doc(application_form) :-
-    inferred_case(first_time_application).
-required_doc(application_form) :-
-    inferred_case(out_of_state_transfer).
+replacement_in_person_case :-
+    inferred_case(replacement),
+    service_mode(in_person).
+replacement_in_person_case :-
+    inferred_case(replacement),
+    service_mode(likely_in_person).
 
-required_doc(identity) :-
-    inferred_case(first_time_application).
-required_doc(identity) :-
-    inferred_case(out_of_state_transfer).
-
-required_doc(citizenship_or_lawful_presence) :-
-    inferred_case(first_time_application).
-required_doc(citizenship_or_lawful_presence) :-
-    inferred_case(out_of_state_transfer).
-
-required_doc(social_security_number) :-
-    inferred_case(first_time_application).
-required_doc(social_security_number) :-
-    inferred_case(out_of_state_transfer).
-
-required_doc(texas_residency_two_documents) :-
-    inferred_case(first_time_application).
-required_doc(texas_residency_two_documents) :-
-    inferred_case(out_of_state_transfer).
+required_doc(application_form) :- application_case.
+required_doc(identity) :- application_case.
+required_doc(citizenship_or_lawful_presence) :- application_case.
+required_doc(social_security_number) :- application_case.
+required_doc(texas_residency_two_documents) :- application_case.
 
 required_doc(proof_of_insurance_for_each_owned_vehicle) :-
-    inferred_case(first_time_application),
-    owns_vehicle.
-required_doc(proof_of_insurance_for_each_owned_vehicle) :-
-    inferred_case(out_of_state_transfer),
+    application_case,
     owns_vehicle.
 
 required_doc(texas_vehicle_registration_for_each_owned_vehicle) :-
@@ -650,11 +704,8 @@ required_doc(texas_vehicle_registration_for_each_owned_vehicle) :-
     owns_vehicle.
 
 required_doc(statement_no_vehicle_owned) :-
-    inferred_case(first_time_application),
-    no_vehicle_owned.
-required_doc(statement_no_vehicle_owned) :-
-    inferred_case(out_of_state_transfer),
-    no_vehicle_owned.
+    application_case,
+    -owns_vehicle.
 
 required_doc(out_of_state_license_to_surrender) :-
     inferred_case(out_of_state_transfer),
@@ -662,9 +713,7 @@ required_doc(out_of_state_license_to_surrender) :-
 
 required_doc(adult_driver_education_certificate) :-
     inferred_case(first_time_application),
-    age(A),
-    A >= 18,
-    A =< 24.
+    age_18_to_24.
 
 required_doc(impact_texas_drivers_certificate_within_90_days) :-
     inferred_case(first_time_application).
@@ -687,60 +736,36 @@ required_doc(citizenship_or_lawful_presence_if_not_on_record) :-
     not lawful_presence_on_record.
 
 required_doc(replacement_application_form) :-
-    inferred_case(replacement),
-    service_mode(in_person).
-required_doc(replacement_application_form) :-
-    inferred_case(replacement),
-    service_mode(likely_in_person).
+    replacement_in_person_case.
 
 required_doc(identity_one_primary_secondary_or_supporting_doc) :-
-    inferred_case(replacement),
-    service_mode(in_person).
-required_doc(identity_one_primary_secondary_or_supporting_doc) :-
-    inferred_case(replacement),
-    service_mode(likely_in_person).
+    replacement_in_person_case.
 
 required_doc(citizenship_or_lawful_presence_if_not_previously_provided) :-
-    inferred_case(replacement),
-    not lawful_presence_on_record,
-    service_mode(in_person).
-required_doc(citizenship_or_lawful_presence_if_not_previously_provided) :-
-    inferred_case(replacement),
-    not lawful_presence_on_record,
-    service_mode(likely_in_person).
+    replacement_in_person_case,
+    not lawful_presence_on_record.
 
 required_doc(social_security_if_not_previously_provided) :-
-    inferred_case(replacement),
-    not ssn_on_record,
-    service_mode(in_person).
-required_doc(social_security_if_not_previously_provided) :-
-    inferred_case(replacement),
-    not ssn_on_record,
-    service_mode(likely_in_person).
+    replacement_in_person_case,
+    not ssn_on_record.
 
 required_doc(card_number_date_of_birth_last4_ssn_audit_number) :-
     inferred_case(replacement),
-    no_front_card_changed,
+    -front_card_changed,
     online_replacement_ready.
 
 % --------------------------------------------------
 % Exams and waivers
 % --------------------------------------------------
 
-likely_exam(vision_exam) :-
-    inferred_case(first_time_application).
-likely_exam(vision_exam) :-
-    inferred_case(out_of_state_transfer).
+likely_exam(vision_exam) :- application_case.
 likely_exam(vision_exam) :-
     inferred_case(renewal),
     not online_renewal_eligible.
 
-likely_exam(knowledge_exam) :-
-    inferred_case(first_time_application).
-likely_exam(skills_exam) :-
-    inferred_case(first_time_application).
-likely_exam(impact_texas_drivers_before_skills_test) :-
-    inferred_case(first_time_application).
+likely_exam(knowledge_exam) :- inferred_case(first_time_application).
+likely_exam(skills_exam) :- inferred_case(first_time_application).
+likely_exam(impact_texas_drivers_before_skills_test) :- inferred_case(first_time_application).
 
 likely_exam(knowledge_exam) :-
     inferred_case(out_of_state_transfer),
@@ -779,7 +804,7 @@ waiver(impact_texas_drivers_waived) :-
     A >= 18.
 
 % --------------------------------------------------
-% Explanation-friendly facts
+% Explanation-friendly atoms
 % --------------------------------------------------
 
 explanation(under_18_out_of_scope) :-
@@ -807,9 +832,7 @@ explanation(first_time_application_requires_tests) :-
 
 explanation(age_18_to_24_requires_adult_driver_education) :-
     inferred_case(first_time_application),
-    age(A),
-    A >= 18,
-    A =< 24.
+    age_18_to_24.
 
 explanation(renewal_window_is_two_years_before_or_after_expiration) :-
     inferred_case(renewal).
@@ -824,7 +847,7 @@ explanation(online_renewal_requires_extra_eligibility_checks) :-
 
 explanation(replacement_without_front_card_changes_may_be_done_online) :-
     inferred_case(replacement),
-    no_front_card_changed.
+    -front_card_changed.
 
 explanation(replacement_front_of_card_changes_require_non_online_path) :-
     inferred_case(replacement),
@@ -872,16 +895,12 @@ final_guidance(first_time_application_in_person_with_docs_and_tests) :-
 
 final_guidance(complete_adult_driver_education_before_applying) :-
     inferred_case(first_time_application),
-    age(A),
-    A >= 18,
-    A =< 24,
+    age_18_to_24,
     adult_driver_education_status(not_completed).
 
 final_guidance(complete_adult_driver_education_before_applying) :-
     inferred_case(first_time_application),
-    age(A),
-    A >= 18,
-    A =< 24,
+    age_18_to_24,
     adult_driver_education_status(in_progress).
 
 final_guidance(renewal_may_be_done_online_if_all_eligibility_rules_are_met) :-
@@ -899,7 +918,7 @@ final_guidance(license_expired_more_than_two_years_follow_original_application_g
 
 final_guidance(replacement_may_be_done_online_if_no_front_changes_and_you_have_required_card_data) :-
     inferred_case(replacement),
-    no_front_card_changed,
+    -front_card_changed,
     online_replacement_ready.
 
 final_guidance(replacement_likely_requires_in_person_if_front_of_card_information_changed) :-
@@ -918,5 +937,3 @@ final_guidance(address_change_can_be_online_mail_or_in_person_when_eligible) :-
 final_guidance(file_police_report_if_stolen_card_was_used_fraudulently) :-
     inferred_case(replacement),
     license_stolen_and_fraud_used.
-
-final_guidance(verify_with_official_texas_dps_and_texas_gov_sources).

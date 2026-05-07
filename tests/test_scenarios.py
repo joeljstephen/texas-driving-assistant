@@ -66,7 +66,7 @@ def test_renewal_outside_likely_window():
     assert "license_expired_more_than_two_years_follow_original_application_guidance" in result.final_guidance
 
 
-def test_green_card_holder_can_satisfy_online_renewal_presence_check():
+def test_green_card_holder_does_not_satisfy_online_renewal_citizenship_check():
     facts = parse_message(
         "I want to renew my Texas license. It expires soon. I am 35. I last renewed in person. "
         "My health is unchanged. My Texas license is valid. No outstanding tickets or warrants. "
@@ -76,8 +76,23 @@ def test_green_card_holder_can_satisfy_online_renewal_presence_check():
     result = ScaspRunner().run(facts)
 
     assert result.case_type == "renewal"
+    assert "likely_in_person" in result.service_modes
+    assert "may_be_online" not in result.service_modes
+    assert "citizenship_for_online_renewal" not in result.missing_info
+
+
+def test_us_citizen_can_satisfy_online_renewal_citizenship_check():
+    facts = parse_message(
+        "I want to renew my Texas license. It expires soon. I am 35. I last renewed in person. "
+        "My health is unchanged. My Texas license is valid. No outstanding tickets or warrants. "
+        "I am a US citizen. My SSN is on record."
+    ).facts
+
+    result = ScaspRunner().run(facts)
+
+    assert result.case_type == "renewal"
     assert "may_be_online" in result.service_modes
-    assert "lawful_presence_for_online_renewal" not in result.missing_info
+    assert "citizenship_for_online_renewal" not in result.missing_info
 
 
 def test_underage_applicant_gets_strong_adult_scope_stop():

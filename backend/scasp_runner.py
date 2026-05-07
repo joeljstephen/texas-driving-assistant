@@ -126,18 +126,18 @@ class ScaspRunner:
             "health_conditions_unchanged": facts.health_conditions_unchanged,
         }
         negative_predicates = {
-            "has_out_of_state_license": "no_out_of_state_license",
-            "out_of_state_license_valid": "out_of_state_license_invalid",
-            "out_of_state_license_unexpired": "out_of_state_license_expired",
-            "has_texas_license": "no_texas_license",
-            "front_card_changed": "no_front_card_changed",
-            "owns_vehicle": "no_vehicle_owned",
-            "us_citizen": "not_us_citizen",
-            "ssn_on_record": "ssn_not_on_record",
-            "last_renewed_in_person": "last_renewed_not_in_person",
-            "license_valid_status": "license_invalid_status",
-            "no_outstanding_tickets_or_warrants": "outstanding_tickets_or_warrants",
-            "health_conditions_unchanged": "health_conditions_changed",
+            "has_out_of_state_license": "-has_out_of_state_license",
+            "out_of_state_license_valid": "-out_of_state_license_valid",
+            "out_of_state_license_unexpired": "-out_of_state_license_unexpired",
+            "has_texas_license": "-has_texas_license",
+            "front_card_changed": "-front_card_changed",
+            "owns_vehicle": "-owns_vehicle",
+            "us_citizen": "-us_citizen",
+            "ssn_on_record": "-ssn_on_record",
+            "last_renewed_in_person": "-last_renewed_in_person",
+            "license_valid_status": "-license_valid_status",
+            "no_outstanding_tickets_or_warrants": "-no_outstanding_tickets_or_warrants",
+            "health_conditions_unchanged": "-health_conditions_unchanged",
         }
 
         for predicate, value in boolean_predicates.items():

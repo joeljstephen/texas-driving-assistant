@@ -1,16 +1,4 @@
-"""Detect the user's case from a natural-language entry message.
-
-The current Gemini-based parser already extracts canonical facts. This
-module wraps the parser into a small ``CaseDetection`` object that the
-chat-style entry uses to:
-
-* identify the likely case
-* produce a short, friendly acknowledgement message
-* keep deterministic fallbacks working when Gemini is disabled or fails
-
-s(CASP) is still the source of truth for the final classification; the
-detection here only chooses which guided intake flow to show.
-"""
+"""Detect the guided intake case from the user's entry message."""
 
 from __future__ import annotations
 

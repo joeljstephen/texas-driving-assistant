@@ -1,22 +1,8 @@
-"""Streamlit UI for the Texas Driver License Guidance Assistant.
-
-The flow is intentionally guided:
-
-1. **Chat-style entry** — user types a plain message (or clicks a scenario card).
-2. **Case detection** — Gemini (optional) or the deterministic parser identifies the case.
-3. **Step-based intake** — short, grouped steps with rich document selectors.
-4. **One s(CASP) run** — reasoning happens once after intake, not on every keystroke.
-5. **Rich report** — case, service mode, documents, exams, waivers, why-this-applies, missing items, next steps.
-6. **Follow-up chat** — grounded in the structured state and the s(CASP) result.
-
-All decisions, required docs, exams, waivers, service mode, and final
-guidance still come from s(CASP). Gemini is only used for natural-language
-fact extraction, personalized summary wording, and follow-up polishing.
-"""
+"""Streamlit UI for the Texas Driver License Guidance Assistant."""
 
 from __future__ import annotations
 
-from dataclasses import fields, replace
+from dataclasses import replace
 from html import escape
 import os
 import time
@@ -41,7 +27,6 @@ from backend.intake import (
 )
 from backend.models import AssistantSession, ChatMessage, DocumentSelections, FactState
 from backend.report_composer import ChecklistItem, Report, ReportSection, compose_report
-from backend.response_generator import summarize_reasoning
 from backend.scasp_runner import ScaspRunner, run_policy_safely
 from backend.scenarios import QUICK_ACTIONS
 from backend.state_manager import append_assistant_turn, merge_facts, reset_session
@@ -94,12 +79,14 @@ def inject_styles() -> None:
             color: var(--text);
         }
         .block-container {
-            max-width: 1100px;
+            max-width: 1020px;
             padding-top: 2rem;
             padding-left: clamp(1.5rem, 4vw, 3rem);
             padding-right: clamp(1.5rem, 4vw, 3rem);
             padding-bottom: 5rem;
             background: transparent !important;
+            margin-left: auto;
+            margin-right: auto;
         }
         section.main,
         main,
@@ -130,7 +117,7 @@ def inject_styles() -> None:
             backdrop-filter: blur(12px);
         }
         [data-testid="stChatFloatingInputContainer"] > div {
-            max-width: 1100px;
+            max-width: 1020px;
             margin-left: auto;
             margin-right: auto;
             background: transparent !important;
@@ -139,7 +126,7 @@ def inject_styles() -> None:
             padding: 0 !important;
         }
         [data-testid="stBottomBlockContainer"] > div {
-            max-width: 1100px;
+            max-width: 1020px;
             margin-left: auto;
             margin-right: auto;
             background: transparent !important;
@@ -147,13 +134,16 @@ def inject_styles() -> None:
             border: 0 !important;
             padding: 0 !important;
         }
-        [data-testid="stChatFloatingInputContainer"] textarea {
-            background: rgba(17, 27, 40, 0.92) !important;
+        [data-testid="stChatFloatingInputContainer"] textarea,
+        [data-testid="stBottomBlockContainer"] textarea {
+            background: rgba(30, 43, 60, 0.82) !important;
             border: 1px solid rgba(100, 116, 139, 0.42) !important;
             border-radius: 13px !important;
             color: var(--text) !important;
             box-shadow: 0 10px 24px rgba(2, 6, 23, 0.24);
             min-height: 3rem !important;
+            line-height: 1.35 !important;
+            padding: 0.8rem 3.25rem 0.8rem 1rem !important;
         }
         [data-testid="stChatFloatingInputContainer"] [data-testid="stChatInput"] {
             background: transparent !important;
@@ -284,35 +274,44 @@ def inject_styles() -> None:
             margin-top: 0.65rem;
         }
         .quick-row-gap {
-            height: 0.85rem;
+            height: 1.15rem;
         }
         .quick-title {
             font-weight: 700;
             font-size: 0.96rem;
             line-height: 1.25;
-            margin: 0.32rem 0.3rem 0.16rem 0.3rem;
-            padding: 0.42rem 0.5rem 0.24rem 0.5rem;
+            margin: 0 0 0.45rem 0;
+            padding: 0;
         }
         .quick-copy, .small-muted {
             color: var(--muted);
-            font-size: 0.86rem;
-            line-height: 1.28;
-            margin: 0.18rem 0.3rem 0.3rem 0.3rem;
-            padding: 0.2rem 0.5rem 0.34rem 0.5rem;
-        }
-        [class*="st-key-quick_option_"] {
-            --card-bg: var(--surface-raised);
-            background: var(--card-bg) !important;
-            background-color: var(--card-bg) !important;
-            border-radius: 14px;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            margin: 0;
+            padding: 0;
         }
         [class*="st-key-quick_option_"] [data-testid="stVerticalBlockBorderWrapper"],
         [data-testid="stVerticalBlockBorderWrapper"][class*="st-key-quick_option_"] {
             --card-bg: var(--surface-raised);
-            padding: 1.35rem 1.5rem !important;
+            border-color: rgba(148, 163, 184, 0.30) !important;
+            border-radius: 12px !important;
+            padding: 1.2rem 1.3rem !important;
             background: var(--card-bg) !important;
             background-color: var(--card-bg) !important;
-            min-height: 8.75rem;
+            min-height: 10rem;
+            box-shadow: 0 12px 28px rgba(2, 6, 23, 0.18) !important;
+        }
+        [class*="st-key-quick_option_"] [data-testid="stVerticalBlockBorderWrapper"] > div,
+        [data-testid="stVerticalBlockBorderWrapper"][class*="st-key-quick_option_"] > div {
+            min-height: 100%;
+        }
+        [class*="st-key-quick_option_"] [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlock"],
+        [data-testid="stVerticalBlockBorderWrapper"][class*="st-key-quick_option_"] [data-testid="stVerticalBlock"] {
+            min-height: 7.6rem;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            gap: 0.85rem !important;
         }
         [class*="st-key-quick_option_"] [data-testid="stHorizontalBlock"],
         [class*="st-key-quick_option_"] [data-testid="column"],
@@ -323,21 +322,16 @@ def inject_styles() -> None:
         }
         [class*="st-key-quick_option_"] div[data-testid="stButton"] > button {
             min-height: 2.5rem;
-            width: calc(100% - 1rem);
-            margin-left: 0.5rem;
-            margin-right: 0.5rem;
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-            padding-top: 0.25rem;
-            padding-bottom: 0.7rem;
+            width: 100%;
+            margin: 0;
+            padding: 0.35rem 0.8rem;
             background: rgba(30, 43, 60, 0.82) !important;
             background-color: rgba(30, 43, 60, 0.82) !important;
         }
         [class*="st-key-quick_option_"] div[data-testid="stButton"] {
-            margin-top: 0.8rem;
-            margin-bottom: 0.9rem;
-            padding-left: 0.3rem;
-            padding-right: 0.3rem;
+            margin-top: 1rem;
+            margin-bottom: 0;
+            padding: 0;
         }
         .step-nav-copy {
             color: var(--muted);
@@ -668,7 +662,7 @@ def inject_styles() -> None:
                 width: 100%;
             }
             [data-testid="stChatFloatingInputContainer"] {
-                width: calc(100% - 2rem);
+                width: 100%;
             }
         }
         </style>
@@ -706,30 +700,11 @@ def reset_all_state() -> None:
 
 
 def settings_block() -> dict[str, bool]:
-    with st.sidebar:
-        st.header("Settings")
-        gemini_available = bool(os.getenv("GEMINI_API_KEY"))
-        use_gemini_parser = st.toggle(
-            "Gemini case understanding",
-            value=gemini_available,
-            help="Uses Gemini structured output to identify the case from your free-text entry.",
-        )
-        use_gemini_summary = st.toggle(
-            "Gemini personalized summary",
-            value=gemini_available,
-            help="Lets Gemini rewrite the structured s(CASP) result into a polished summary.",
-        )
-        use_gemini_followup = st.toggle(
-            "Gemini follow-up rewriting",
-            value=gemini_available,
-            help="Lets Gemini lightly rephrase deterministic follow-up answers.",
-        )
-        if use_gemini_parser or use_gemini_summary or use_gemini_followup:
-            st.caption("Gemini requires `GEMINI_API_KEY` and `GEMINI_MODEL` in the environment.")
+    gemini_available = bool(os.getenv("GEMINI_API_KEY"))
     return {
-        "parser": use_gemini_parser,
-        "summary": use_gemini_summary,
-        "followup": use_gemini_followup,
+        "parser": gemini_available,
+        "summary": gemini_available,
+        "followup": gemini_available,
     }
 
 
@@ -1227,6 +1202,7 @@ def render_report_and_followup(session: AssistantSession, settings: dict[str, bo
     render_next_steps(report)
     render_post_actions(session)
     render_followup_chat(session, settings, report)
+    render_scasp_run_details(session)
 
 
 def render_report_header(report: Report) -> None:
@@ -1331,6 +1307,22 @@ def render_next_steps(report: Report) -> None:
             return
         items = "".join(f"<li>{escape(step)}</li>" for step in report.next_steps)
         st.markdown(f'<ul class="why-list">{items}</ul>', unsafe_allow_html=True)
+
+
+def render_scasp_run_details(session: AssistantSession) -> None:
+    result = session.last_policy_result
+    with st.expander("s(CASP) run: raw facts, queries, and outputs", expanded=False):
+        facts_tab, queries_tab, atoms_tab, raw_tab = st.tabs(
+            ["Facts sent", "Queries", "Result atoms", "Raw JSON"]
+        )
+        with facts_tab:
+            st.code(scasp_predicates_for_display(session), language="prolog")
+        with queries_tab:
+            st.json(scasp_queries_for_display())
+        with atoms_tab:
+            st.json(scasp_result_for_display(session))
+        with raw_tab:
+            st.json(result.raw if result and result.raw else {})
 
 
 def render_post_actions(session: AssistantSession) -> None:
@@ -1458,52 +1450,19 @@ def state_snapshot(session: AssistantSession) -> dict[str, Any]:
     }
 
 
-# ----------------- Sidebar -----------------
-
-
-def render_sidebar(session: AssistantSession) -> None:
-    with st.sidebar:
-        if st.button("Reset session", use_container_width=True):
-            reset_all_state()
-            st.rerun()
-
-        st.header("Detected case")
-        st.write(case_label(session.detected_case))
-
-        st.header("Collected facts")
-        st.json(session.facts.to_public_dict())
-
-        if session.documents.selected or session.documents.lawful_presence_choice:
-            st.header("Selected documents")
-            for category_key, choices in session.documents.selected.items():
-                if not choices:
-                    continue
-                human = ", ".join(option_label(category_key, key) for key in choices)
-                st.markdown(f"- **{DOCUMENT_CATEGORIES[category_key].title}**: {human}")
-            if session.documents.lawful_presence_choice:
-                st.markdown(
-                    f"- **Citizenship or lawful presence**: {option_label('lawful_presence', session.documents.lawful_presence_choice)}"
-                )
-
-        st.header("Reasoning details")
-        result = session.last_policy_result
-        st.caption("Current inference")
-        st.code(result.case_type if result and result.case_type else "Not evaluated yet")
-        st.caption("Reasoning summary")
-        st.text(summarize_reasoning(result) if result else "s(CASP) has not run yet.")
-
-        with st.expander("Raw predicates sent to s(CASP)", expanded=False):
-            st.code(scasp_predicates_for_display(session), language="prolog")
-        with st.expander("s(CASP) result atoms", expanded=False):
-            st.json(scasp_result_for_display(session))
-        with st.expander("Raw s(CASP) JSON payloads", expanded=False):
-            st.json(result.raw if result and result.raw else {})
-        with st.expander("Known fact fields", expanded=False):
-            st.write([field.name for field in fields(FactState)])
-
-
 def scasp_predicates_for_display(session: AssistantSession) -> str:
     return ScaspRunner()._facts_to_scasp(session.facts)
+
+
+def scasp_queries_for_display() -> dict[str, dict[str, object]]:
+    return {
+        key: {
+            "query": query,
+            "variable": variable,
+            "many": many,
+        }
+        for key, (query, variable, many) in ScaspRunner.QUERIES.items()
+    }
 
 
 def scasp_result_for_display(session: AssistantSession) -> dict[str, object]:
@@ -1553,8 +1512,6 @@ def main() -> None:
         render_intake(session, settings)
     else:
         render_entry(session, settings)
-
-    render_sidebar(session)
 
 
 main()
