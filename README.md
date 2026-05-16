@@ -2,11 +2,11 @@
 
 An educational expert system that helps adults understand common non-commercial Texas driver license scenarios.
 
-The assistant starts from a plain-language message or quick-start scenario, identifies the likely case, asks guided intake questions, turns the answers into logic facts, runs an `s(CASP)` rule program, and returns a structured guidance report. The report includes the likely service method, document categories, likely exams or waivers, missing information, and recommended next steps.
+The assistant starts from a plain language message or quick-start scenario, identifies the likely case, asks guided intake questions, turns the answers into logic facts, runs an `s(CASP)` rule program, and returns a structured guidance report. The report includes the likely service method, document categories, likely exams or waivers, missing information, and recommended next steps.
 
 ## Important Disclaimer
 
-This project is for educational expert-system work only. It is not legal advice and it is not an official Texas DPS or Texas.gov service. Always verify requirements, eligibility, fees, deadlines, forms, documents, and procedures with official Texas DPS or Texas.gov sources before acting.
+This project is for educational expert system work only. It is not legal advice and it is not an official Texas DPS or Texas.gov service. Always verify requirements, eligibility, fees, deadlines, forms, documents, and procedures with official Texas DPS or Texas.gov sources before acting.
 
 ## Supported Scenarios
 
@@ -20,12 +20,12 @@ Out of scope: under-18 licensing paths, learner permits, CDL, motorcycle endorse
 
 ## How It Works
 
-1. The user enters a natural-language message or starts from a quick scenario.
+1. The user enters a natural language message or starts from a quick scenario.
 2. Case detection selects the most likely guided intake flow.
 3. The intake collects only the facts needed for that scenario, including document category selections.
 4. The Python app serializes the facts into `s(CASP)` predicates.
 5. `scasp/tx_dl_assistant.pl` classifies the case and emits policy atoms.
-6. The report composer turns those atoms into a user-facing report.
+6. The report composer turns those atoms into a user facing report.
 7. Follow-up answers stay grounded in the stored facts and latest `s(CASP)` result.
 
 `s(CASP)` is the source of truth for decisions. Optional Gemini calls may help parse free text, rewrite a summary, or lightly rephrase follow-up answers, but they are not allowed to add or override requirements.
@@ -41,7 +41,7 @@ Out of scope: under-18 licensing paths, learner permits, CDL, motorcycle endorse
 
 ```text
 app.py                         Streamlit app and UI flow
-backend/case_detection.py      Entry-message scenario detection
+backend/case_detection.py      Entry message scenario detection
 backend/intake.py              Guided intake steps and fact mapping
 backend/document_catalog.py    Curated document categories
 backend/parser.py              Deterministic regex parser
@@ -101,7 +101,7 @@ ENABLE_GEMINI_SUMMARY=false
 ENABLE_GEMINI_FOLLOWUP=false
 ```
 
-If `GEMINI_API_KEY` is not set, all Gemini-assisted features stay disabled and the deterministic parser, summary, and follow-up paths are used.
+If `GEMINI_API_KEY` is not set, all Gemini assisted features stay disabled and the deterministic parser, summary, and follow-up paths are used.
 
 ## Run
 
