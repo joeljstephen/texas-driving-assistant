@@ -40,7 +40,9 @@ Out of scope: under-18 licensing paths, learner permits, CDL, motorcycle endorse
 ## Project Structure
 
 ```text
-app.py                         Streamlit app and UI flow
+app.py                         Streamlit entry point
+ui.py                          Streamlit UI flow and rendering
+styles.css                     Streamlit UI styling loaded by ui.py
 backend/case_detection.py      Entry message scenario detection
 backend/intake.py              Guided intake steps and fact mapping
 backend/document_catalog.py    Curated document categories
