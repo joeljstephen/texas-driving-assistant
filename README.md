@@ -1,8 +1,8 @@
 # Texas Driver License Guidance Assistant
 
-A Streamlit-based educational expert system for common adult, non-commercial Texas driver license scenarios.
+An educational expert system that helps adults understand common non-commercial Texas driver license scenarios.
 
-The assistant starts from a plain-language message, guides the user through scenario-specific intake, runs an `s(CASP)` rules program, and returns a structured report with required document categories, likely tests, waivers, service mode, missing items, and next steps.
+The assistant starts from a plain-language message or quick-start scenario, identifies the likely case, asks guided intake questions, turns the answers into logic facts, runs an `s(CASP)` rule program, and returns a structured guidance report. The report includes the likely service method, document categories, likely exams or waivers, missing information, and recommended next steps.
 
 ## Important Disclaimer
 
@@ -52,10 +52,9 @@ backend/report_composer.py     Structured report assembly
 backend/gemini_summary.py      Optional grounded summary rewrite
 backend/followup.py            Grounded follow-up answers
 backend/followup_state.py      Follow-up fact/document reconciliation
-backend/response_generator.py  Atom labels and sidebar summaries
+backend/response_generator.py  Atom labels for reports and summaries
 scasp/tx_dl_assistant.pl       Policy rules source of truth
 tests/                         Unit, parser, report, and reasoning tests
-docs/                          Architecture and rule summaries
 ```
 
 ## Setup
@@ -104,7 +103,7 @@ ENABLE_GEMINI_SUMMARY=false
 ENABLE_GEMINI_FOLLOWUP=false
 ```
 
-The sidebar also exposes runtime toggles for Gemini-assisted features.
+If `GEMINI_API_KEY` is not set, all Gemini-assisted features stay disabled and the deterministic parser, summary, and follow-up paths are used.
 
 ## Run
 
@@ -125,19 +124,3 @@ Useful additional checks:
 ```bash
 python -m compileall -q .
 ```
-
-## Design Notes
-
-- The rule base intentionally models a simplified MVP policy subset.
-- The UI collects document categories and examples, not a complete accepted-document checklist.
-- The app runs `s(CASP)` once after guided intake instead of on every keystroke.
-- Follow-up questions can update facts only when the message is an assertion or direct answer, which prevents ordinary questions from mutating the report.
-- Gemini output is strictly validated for parsing and treated as wording support for summaries/follow-ups.
-
-## Current Limitations
-
-- Guidance is high-level and category-based.
-- Renewal eligibility is conservative.
-- Official fees, appointment availability, forms, and live DPS eligibility checks are not integrated.
-- Under-18 and specialty license paths are deliberately excluded.
-- The deterministic parser is useful for demos, not exhaustive natural-language understanding.

@@ -42,6 +42,4 @@ dist/
 # Generated local artifacts
 *.tmp
 *.bak
-docs/report_assets/
-docs/*.docx
 tmp/

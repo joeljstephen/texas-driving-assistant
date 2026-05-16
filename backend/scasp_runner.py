@@ -14,6 +14,9 @@ from .models import FactState, PolicyResult
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_PROGRAM_PATH = ROOT_DIR / "scasp" / "tx_dl_assistant.pl"
+ATOM_ALIASES = {
+    "out_of_scope_under": "out_of_scope_under_18",
+}
 
 
 class ScaspUnavailable(RuntimeError):
@@ -48,9 +51,6 @@ class ScaspRunner:
 
     def run(self, facts: FactState) -> PolicyResult:
         """Serialize facts, execute s(CASP), and return a structured result."""
-
-        if facts.age is not None and facts.age < 18:
-            return underage_policy_result(facts)
 
         if not self.is_available():
             raise ScaspUnavailable(
@@ -172,7 +172,8 @@ class ScaspRunner:
             return ""
         value_type = value.get("type")
         if value_type == "atom":
-            return str(value.get("value"))
+            atom = str(value.get("value"))
+            return ATOM_ALIASES.get(atom, atom)
         if value_type == "rational":
             denominator = value.get("denominator", 1)
             numerator = value.get("numerator")
@@ -192,31 +193,11 @@ class ScaspRunner:
 def run_policy_safely(facts: FactState, runner: ScaspRunner | None = None) -> PolicyResult:
     """Run s(CASP), converting setup/runtime failures into a user-visible result."""
 
-    if facts.age is not None and facts.age < 18:
-        return underage_policy_result(facts)
-
     active_runner = runner or ScaspRunner()
     try:
-        result = active_runner.run(facts)
-        if facts.age is not None and facts.age < 18:
-            return underage_policy_result(facts)
-        return result
+        return active_runner.run(facts)
     except (ScaspUnavailable, ScaspExecutionError, subprocess.TimeoutExpired) as exc:
         return PolicyResult(error=str(exc))
-
-
-def underage_policy_result(facts: FactState) -> PolicyResult:
-    """Return deterministic adult-scope guidance for applicants under 18."""
-
-    guidance = ["under_18_adult_license_not_available"]
-    if facts.age is not None and facts.age < 15:
-        guidance.insert(0, "under_15_no_ordinary_driver_license_path")
-    return PolicyResult(
-        case_type="out_of_scope_under_18",
-        service_modes=["not_available_adult_flow"],
-        explanations=["under_18_out_of_scope"],
-        final_guidance=guidance,
-    )
 
 
 def _dedupe(values: list[str]) -> list[str]:

@@ -256,7 +256,7 @@ def _short_list(items: list[str], limit: int) -> str:
 
 
 def summarize_reasoning(result: PolicyResult) -> str:
-    """Return a compact sidebar summary."""
+    """Return a compact reasoning summary for debug or developer views."""
 
     if result.error:
         return result.error

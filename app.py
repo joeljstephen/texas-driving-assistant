@@ -14,7 +14,7 @@ from backend.case_detection import CASE_INTROS, case_label, detect_case
 from backend.document_catalog import DOCUMENT_CATEGORIES, option_label
 from backend.followup import FollowUpConfig, answer_follow_up
 from backend.followup_state import reconcile_followup_documents, should_apply_followup_facts
-from backend.gemini_parser import GeminiParserConfig, load_dotenv_file, parse_with_gemini_or_fallback
+from backend.gemini_parser import GeminiParserConfig, env_bool, load_dotenv_file, parse_with_gemini_or_fallback
 from backend.gemini_summary import GeminiSummaryConfig, generate_summary
 from backend.intake import (
     IntakeField,
@@ -35,7 +35,6 @@ from backend.state_manager import append_assistant_turn, merge_facts, reset_sess
 st.set_page_config(
     page_title="Texas Driver License Guidance Assistant",
     layout="wide",
-    initial_sidebar_state="collapsed",
 )
 load_dotenv_file()
 
@@ -702,9 +701,9 @@ def reset_all_state() -> None:
 def settings_block() -> dict[str, bool]:
     gemini_available = bool(os.getenv("GEMINI_API_KEY"))
     return {
-        "parser": gemini_available,
-        "summary": gemini_available,
-        "followup": gemini_available,
+        "parser": gemini_available and env_bool("ENABLE_GEMINI_PARSER", True),
+        "summary": gemini_available and env_bool("ENABLE_GEMINI_SUMMARY", False),
+        "followup": gemini_available and env_bool("ENABLE_GEMINI_FOLLOWUP", False),
     }
 
 

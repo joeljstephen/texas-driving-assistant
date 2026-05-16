@@ -1,7 +1,7 @@
 % Main s(CASP) knowledge base for adult, non-commercial Texas driver-license guidance.
 
 % --------------------------------------------------
-% Optional input predicates
+% Input predicates
 % --------------------------------------------------
 
 goal(__none) :- false.
@@ -19,7 +19,6 @@ no_out_of_state_license :- false.
 out_of_state_license_valid :- false.
 -out_of_state_license_valid :- false.
 out_of_state_license_invalid :- false.
-
 out_of_state_license_unexpired :- false.
 -out_of_state_license_unexpired :- false.
 out_of_state_license_expired :- false.
@@ -201,6 +200,7 @@ online_replacement_ready :-
 % Constraints
 % --------------------------------------------------
 
+% Explicit opposites should not survive in the same answer set.
 false :- has_out_of_state_license, -has_out_of_state_license.
 false :- out_of_state_license_valid, -out_of_state_license_valid.
 false :- out_of_state_license_unexpired, -out_of_state_license_unexpired.
@@ -221,6 +221,7 @@ false :- under_18, age_18_to_24.
 % Scenario signals
 % --------------------------------------------------
 
+% These rules collect evidence for each possible flow before priorities apply.
 case_candidate(replacement) :- goal_is(replacement).
 case_candidate(replacement) :- goal_is(change_info).
 case_candidate(replacement) :-
@@ -280,6 +281,7 @@ first_time_case :- case_candidate(first_time_application).
 % Defaults and strong exceptions for case classification
 % --------------------------------------------------
 
+% Adult scope is the normal case; under-18 applicants are a strong exception.
 adult_scope :-
     not ab(d_adult_scope),
     not -adult_scope.
@@ -289,6 +291,7 @@ ab(d_adult_scope) :- under_18.
 
 inferred_case(out_of_scope_under_18) :- under_18.
 
+% Replacement outranks renewal/transfer when the facts point to a changed or missing card.
 inferred_case(replacement) :-
     case_candidate(replacement),
     adult_scope,
@@ -460,6 +463,7 @@ missing_info(lawful_presence_category) :-
 % Highest-priority next question
 % --------------------------------------------------
 
+% Ask only one question at a time by blocking lower-priority questions.
 next_question(ask_goal) :- missing_info(goal).
 
 next_question(ask_out_of_state_license_presence) :-
@@ -614,10 +618,7 @@ next_question(ask_lawful_presence_category) :-
     not missing_info(social_security),
     missing_info(lawful_presence_category).
 
-% --------------------------------------------------
-% Defaults and exceptions
-% --------------------------------------------------
-
+% Online renewal is only concluded when every required support fact is known.
 online_renewal_eligible :-
     renewal_window_ok,
     last_renewed_in_person,
@@ -628,6 +629,7 @@ online_renewal_eligible :-
     us_citizen,
     ssn_on_record.
 
+% Service-mode atoms are the main path recommendations emitted to Python.
 service_mode(not_available_adult_flow) :-
     inferred_case(out_of_scope_under_18).
 
