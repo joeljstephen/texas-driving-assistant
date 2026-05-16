@@ -35,7 +35,6 @@ Out of scope: under-18 licensing paths, learner permits, CDL, motorcycle endorse
 - Python 3.11+
 - Streamlit for the UI
 - `s(CASP)` for rule-based reasoning
-- `pytest` for backend coverage
 - Google Gemini, optional, for structured parsing and wording polish
 
 ## Project Structure
@@ -54,7 +53,6 @@ backend/followup.py            Grounded follow-up answers
 backend/followup_state.py      Follow-up fact/document reconciliation
 backend/response_generator.py  Atom labels for reports and summaries
 scasp/tx_dl_assistant.pl       Policy rules source of truth
-tests/                         Unit, parser, report, and reasoning tests
 ```
 
 ## Setup
@@ -83,7 +81,7 @@ Verify from your shell:
 scasp --version
 ```
 
-If `scasp` is missing, the app shows a setup error instead of falling back to Python policy logic. Tests that require the real `scasp` executable are skipped when it is unavailable.
+If `scasp` is missing, the app shows a setup error instead of falling back to Python policy logic.
 
 ## Optional Gemini Configuration
 
@@ -112,15 +110,3 @@ streamlit run app.py
 ```
 
 Open the local URL printed by Streamlit, usually [http://localhost:8501](http://localhost:8501).
-
-## Test
-
-```bash
-pytest
-```
-
-Useful additional checks:
-
-```bash
-python -m compileall -q .
-```

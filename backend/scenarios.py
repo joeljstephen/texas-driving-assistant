@@ -1,4 +1,4 @@
-"""Reusable scenario chips for the Streamlit UI and tests."""
+"""Reusable scenario chips for the Streamlit UI."""
 
 from __future__ import annotations
 
@@ -16,4 +16,3 @@ SUPPORTED_SCENARIOS = [
     "Texas driver license renewal",
     "Replacement of a lost, stolen, or damaged Texas license",
 ]
-
